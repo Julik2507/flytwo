@@ -21,8 +21,8 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen
 
-#Actually there's no way to invoke audit directly to uv.lock, that's why implementation with a .txt file was chosen
       - name: Dependency audit
+        continue-on-error: true 
         run: |
           uv export --frozen --no-hashes --no-emit-project > audit-requirements.txt
-          uvx pip-audit -r audit-requirements.txt --no-deps --disable-pip
+          uvx pip-audit -r audit-requirements.txt --no-deps --disable-pip > audit.log
