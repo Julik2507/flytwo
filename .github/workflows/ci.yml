@@ -1,0 +1,16 @@
+name: CI
+
+on:
+  push:
+    branches: [develop, feature/ci]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        run: git clone --branch ${{ github.ref_name }} https://github.com/${{ github.repository }}.git .
+
+      - name: Check Python
+        run: python3 --version
