@@ -14,3 +14,15 @@ jobs:
 
       - name: Check Python
         run: python3 --version
+
+      - name: Install uv
+        run: pipx install uv
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+#Actually there's no way to invoke audit directly to uv.lock, that's why implementation with a .txt file was chosen
+      - name: Dependency audit
+        run: |
+          uv export --frozen --no-hashes --no-emit-project > audit-requirements.txt
+          uvx pip-audit -r audit-requirements.txt --no-deps --disable-pip
