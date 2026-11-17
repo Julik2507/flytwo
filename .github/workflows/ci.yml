@@ -34,12 +34,12 @@ jobs:
         with:
           name: audit-log
           path: audit.log
-
-       - name: OWASP Dependency-Check
+          
+      - name: OWASP Dependency-Check
         env:
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
         run: |
-          mkdir -p odc-report && chmod 777 odc-report
+          mkdir -p odc-report && chmod 777 odc-report 
           docker run --rm \
             -v "$PWD/.venv":/src \
             -v "$PWD/odc-report":/report \
