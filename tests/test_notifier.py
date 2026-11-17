@@ -5,7 +5,7 @@ from bot.notifier import TgBotNotifier
 from client import Airport, Flight
 
 
-async def test_price_change(mock_currency_converter):
+async def test_price_change(mock_currency_converter, redis_mock):
     mock_currency_converter({})
     tg_notifier = TgBotNotifier(chat_id=0)
 
