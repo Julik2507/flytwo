@@ -22,6 +22,8 @@ jobs:
         run: uv sync --locked --all-extras --all-groups
 
       - name: Run unit tests
+        env:
+          BOT_TOKEN: "123456789:TEST_TOKEN_FOR_CI"
         run: uv run pytest -v
 
       - name: Dependency audit (pip-audit)
