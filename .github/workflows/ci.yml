@@ -60,5 +60,6 @@ jobs:
           path: odc-report/
 
       - name: Run unit tests
+        if: always()
         run: uv run pytest -v
       
