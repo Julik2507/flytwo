@@ -64,6 +64,14 @@ jobs:
         run: uv run alembic upgrade head
         env:
           PYTHONPATH: src
+        
+      - name: Inspect DB
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -U postgres -d postgres -c '\dt'
+          psql -h localhost -U postgres -d postgres -c 'select version();'
+
 
       - name: Run unit tests
         run: uv run pytest -v
