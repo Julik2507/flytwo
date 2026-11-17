@@ -25,7 +25,8 @@ jobs:
         continue-on-error: true 
         run: |
           uv export --frozen --no-hashes --no-emit-project > audit-requirements.txt
-          uvx pip-audit -r audit-requirements.txt --no-deps --disable-pip > audit.log
+          uvx pip-audit -r audit-requirements.txt --no-deps --disable-pip \
+            || echo "::warning::pip-audit found vulnerabilities, see the log above"
       
       - name: Save audit log
         if: always()
@@ -33,3 +34,27 @@ jobs:
         with:
           name: audit-log
           path: audit.log
+
+       - name: OWASP Dependency-Check
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+        run: |
+          mkdir -p odc-report && chmod 777 odc-report
+          docker run --rm \
+            -v "$PWD/.venv":/src \
+            -v "$PWD/odc-report":/report \
+            owasp/dependency-check:latest \
+            --scan /src \
+            --out /report \
+            --format ALL \
+            --prettyPrint \
+            --failOnCVSS 9 \
+            --nvdApiKey "$NVD_API_KEY"
+
+      - name: Save OWASP report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: odc-report
+          path: odc-report/
+      
