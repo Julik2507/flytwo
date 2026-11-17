@@ -15,6 +15,7 @@ async def setup_test_db():
     """
     if not async_engine.url.get_backend_name() == 'sqlite':
         raise RuntimeError('Use SQLite backend to run tests')
+        
 
     async with async_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

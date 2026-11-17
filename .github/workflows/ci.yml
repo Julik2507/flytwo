@@ -13,6 +13,24 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    #spin up container based on PG
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+          DB_PORT: 5432
+        ports:
+          - 5432:5432
+    env:
+      DB_HOST: localhost
+      DB_USER: postgres
+      DB_PASS: postgres
+      DB_NAME: postgres
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,7 +44,7 @@ jobs:
       - name: Install dependencies
         run: uv sync --locked --all-extras --all-groups
 
-      - name: Create tests/.env
+      - name: Create dummy tests/.env
         run: |
           cat > tests/.env <<'EOF'
           BOT_TOKEN=123456789:TEST_TOKEN_FOR_CI
@@ -39,48 +57,13 @@ jobs:
       - name: Run unit tests
         run: uv run pytest -v
 
-      # - name: Dependency audit (pip-audit)
-      #   shell: bash
-      #   run: |
-      #     uv export --frozen --no-hashes --no-emit-project > audit-requirements.txt
-      #     if ! uvx pip-audit -r audit-requirements.txt --no-deps --disable-pip 2>&1 | tee audit.log; then
-      #       echo "::warning::pip-audit found vulnerabilities, see the log above"
-      #     fi
-
-      # - name: Save audit log
-      #   if: always()
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: audit-log
-      #     path: audit.log
-      #     if-no-files-found: ignore
-
-      # - name: OWASP Dependency-Check
-      #   timeout-minutes: 30
-      #   env:
-      #     NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
-      #   run: |
-      #     mkdir -p odc-report && chmod 777 odc-report
-      #     NVD_ARGS=()
-      #     if [ -n "$NVD_API_KEY" ]; then
-      #       NVD_ARGS=(--nvdApiKey "$NVD_API_KEY")
-      #     else
-      #       echo "::warning::NVD_API_KEY secret is not set; the NVD download will be slow and may be rate limited"
-      #     fi
-      #     docker run --rm \
-      #       -v "$PWD/.venv":/src \
-      #       -v "$PWD/odc-report":/report \
-      #       owasp/dependency-check:latest \
-      #       --scan /src \
-      #       --out /report \
-      #       --format ALL \
-      #       --prettyPrint \
-      #       --failOnCVSS 9 \
-      #       "${NVD_ARGS[@]}"
-
-      # - name: Save OWASP report
-      #   if: always() && hashFiles('odc-report/**') != ''
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: odc-report
-      #     path: odc-report/
+      - name: Dependency scan (Trivy)
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          scan-type: fs
+          scan-ref: uv.lock
+          scanners: vuln
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          format: table
+          exit-code: '1'
