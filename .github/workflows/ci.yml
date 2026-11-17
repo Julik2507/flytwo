@@ -19,27 +19,33 @@ jobs:
         run: pipx install uv
 
       - name: Install dependencies
-        run: uv sync --frozen
+        run: uv sync --locked --all-extras --all-groups
 
-      - name: Dependency audit
-        continue-on-error: true 
+      - name: Run unit tests
+        run: uv run pytest -v
+
+      - name: Dependency audit (pip-audit)
+        shell: bash
         run: |
           uv export --frozen --no-hashes --no-emit-project > audit-requirements.txt
-          uvx pip-audit -r audit-requirements.txt --no-deps --disable-pip \
-            || echo "::warning::pip-audit found vulnerabilities, see the log above"
-      
+          if ! uvx pip-audit -r audit-requirements.txt --no-deps --disable-pip 2>&1 | tee audit.log; then
+            echo "::warning::pip-audit found vulnerabilities, see the log above"
+          fi
+
       - name: Save audit log
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: audit-log
           path: audit.log
-          
+          if-no-files-found: ignore
+
       - name: OWASP Dependency-Check
+        timeout-minutes: 30
         env:
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
         run: |
-          mkdir -p odc-report && chmod 777 odc-report 
+          mkdir -p odc-report && chmod 777 odc-report
           docker run --rm \
             -v "$PWD/.venv":/src \
             -v "$PWD/odc-report":/report \
@@ -50,19 +56,10 @@ jobs:
             --prettyPrint \
             --failOnCVSS 9 \
             --nvdApiKey "$NVD_API_KEY"
-        timeout-minutes: 1
 
       - name: Save OWASP report
-        if: success()
+        if: always() && hashFiles('odc-report/**') != ''
         uses: actions/upload-artifact@v4
         with:
           name: odc-report
           path: odc-report/
-
-      - name: Install dependencies
-        run: uv sync --locked --all-extras --all-groups
-
-      - name: Run unit tests
-        if: always()
-        run: uv run pytest -v
-      
