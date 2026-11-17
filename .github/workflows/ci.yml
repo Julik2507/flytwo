@@ -59,6 +59,9 @@ jobs:
           name: odc-report
           path: odc-report/
 
+      - name: Install dependencies
+        run: uv sync --locked --all-extras --all-groups
+
       - name: Run unit tests
         if: always()
         run: uv run pytest -v
