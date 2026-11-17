@@ -71,6 +71,7 @@ jobs:
         run: |
           psql -h localhost -U postgres -d postgres -c '\dt'
           psql -h localhost -U postgres -d postgres -c 'select version();'
+          psql -h localhost -U postgres -d postgres -c 'select * from flights;'
 
 
       - name: Run unit tests
