@@ -3,8 +3,6 @@ name: CI
 on:
   push:
     branches: [develop, feature/ci]
-  pull_request:
-    branches: [develop, master]
   workflow_dispatch:
 
 permissions:
@@ -14,7 +12,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    #spin up container based on PG
+    #spin up container based on Postgres
+    env:
+      DB_HOST: localhost
+      DB_USER: postgres
+      DB_PASS: postgres
+      DB_NAME: postgres
+      DB_PORT: 5432
+
     services:
       postgres:
         image: postgres:17-alpine
@@ -24,12 +29,12 @@ jobs:
           POSTGRES_DB: postgres
         ports:
           - 5432:5432
-    env:
-      DB_HOST: localhost
-      DB_USER: postgres
-      DB_PASS: postgres
-      DB_NAME: postgres
-      DB_PORT: 5432
+
+      #spin up container based on Redis
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
 
 
     steps:

@@ -13,8 +13,8 @@ async def setup_test_db():
     Fixture to create database schema at the beginning of the test session.
     Ensures all tables are created before any tests run.
     """
-    # if not async_engine.url.get_backend_name() == 'sqlite':
-    #     raise RuntimeError('Use SQLite backend to run tests')
+    if not async_engine.url.get_backend_name() == 'sqlite':
+        raise RuntimeError('Use SQLite backend to run tests')
         
 
     async with async_engine.begin() as conn:
