@@ -50,9 +50,10 @@ jobs:
             --prettyPrint \
             --failOnCVSS 9 \
             --nvdApiKey "$NVD_API_KEY"
+        timeout-minutes: 1
 
       - name: Save OWASP report
-        if: always()
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: odc-report
