@@ -57,4 +57,7 @@ jobs:
         with:
           name: odc-report
           path: odc-report/
+
+      - name: Run unit tests
+        run: uv run pytest -v
       
