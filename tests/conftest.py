@@ -13,10 +13,9 @@ async def setup_test_db():
     Fixture to create database schema at the beginning of the test session.
     Ensures all tables are created before any tests run.
     """
-    #temporarly disabled
-    # if not async_engine.url.get_backend_name() == 'sqlite':
-    #     raise RuntimeError('Use SQLite backend to run tests')
-        
+    # drop_all runs after every test, so never run against anything but SQLite or a dedicated *_test database
+    if async_engine.url.get_backend_name() != 'sqlite' and not (async_engine.url.database or '').endswith('_test'):
+        raise RuntimeError('Tests must run on SQLite or on a database whose name ends with "_test"')
 
     async with async_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

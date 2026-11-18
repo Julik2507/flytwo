@@ -4,6 +4,7 @@ from datetime import date, datetime
 from sqlalchemy import JSON, BigInteger, Boolean, DateTime, ForeignKey, String, UniqueConstraint, text
 from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from sqlalchemy.pool import NullPool
 
 from conf import DB_HOST, DB_NAME, DB_PASS, DB_PORT, DB_USER
 from logs import logger
@@ -81,7 +82,16 @@ connection_string = (
 )
 
 
-async_engine = create_async_engine(connection_string, pool_pre_ping=True, echo=ALCHEMY_ECHO)
+# asyncpg connections are bound to the event loop that opened them, and pytest runs every test in its own loop,
+# so a connection pool can't be shared between tests. Disable pooling for the dedicated test database.
+IS_TEST_DB = bool(DB_NAME) and DB_NAME.endswith('_test')
+
+async_engine = create_async_engine(
+    connection_string,
+    pool_pre_ping=True,
+    echo=ALCHEMY_ECHO,
+    **({'poolclass': NullPool} if IS_TEST_DB else {}),
+)
 ASession = async_sessionmaker(
     bind=async_engine,
     expire_on_commit=False,

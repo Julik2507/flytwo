@@ -17,7 +17,7 @@ jobs:
       DB_HOST: localhost
       DB_USER: postgres
       DB_PASS: postgres
-      DB_NAME: postgres
+      DB_NAME: flytwo_test
       DB_PORT: 5432
 
     services:
@@ -26,7 +26,7 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: postgres
+          POSTGRES_DB: flytwo_test
         ports:
           - 5432:5432
 
@@ -64,27 +64,9 @@ jobs:
         run: uv run alembic upgrade head
         env:
           PYTHONPATH: src
-        
-      - name: Inspect DB
-        if: always()
-        env:
-          PGPASSWORD: postgres
-        run: |
-          psql -h localhost -U postgres -d postgres -c '\dt'
-          psql -h localhost -U postgres -d postgres -c 'select * from flights;'
-
 
       - name: Run unit tests
         run: uv run pytest -v
-
-      - name: Inspect DB
-        if: always()
-        env:
-          PGPASSWORD: postgres
-        run: |
-          psql -h localhost -U postgres -d postgres -c '\dt'
-          psql -h localhost -U postgres -d postgres -c 'select * from flights;'
-
 
       # - name: Dependency scan (Trivy)
       #   uses: aquasecurity/trivy-action@v0.36.0
