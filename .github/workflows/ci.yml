@@ -65,6 +65,13 @@ jobs:
         env:
           PYTHONPATH: src
         
+      - name: Inspect DB
+        if: always()
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -U postgres -d postgres -c '\dt'
+          psql -h localhost -U postgres -d postgres -c 'select * from flights;'
 
 
       - name: Run unit tests
