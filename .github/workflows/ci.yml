@@ -68,13 +68,23 @@ jobs:
       - name: Run unit tests
         run: uv run pytest -v
 
-      # - name: Dependency scan (Trivy)
-      #   uses: aquasecurity/trivy-action@v0.36.0
-      #   with:
-      #     scan-type: fs
-      #     scan-ref: uv.lock
-      #     scanners: vuln
-      #     severity: CRITICAL,HIGH
-      #     ignore-unfixed: true
-      #     format: table
-      #     exit-code: '1'
+      - name: Dependency scan (Trivy)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: uv.lock
+          scanners: vuln
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          format: table
+          exit-code: '1'
+
+      #This stage behaves similar to post action
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports
+          path: |
+            trivy-report.txt
+          if-no-files-found: ignore
