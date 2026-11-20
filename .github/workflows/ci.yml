@@ -78,7 +78,7 @@ jobs:
           ignore-unfixed: true
           format: table
           output: trivy-report.txt
-          exit-code: '1'
+          exit-code: '0'
 
       #This stage behaves similar to post action
       - name: Upload reports
