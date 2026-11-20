@@ -16,7 +16,7 @@ jobs:
     env:
       DB_HOST: localhost
       DB_USER: postgres
-      DB_PASS: postgres
+      DB_PASS: ${{ secrets.DB_PASS }}
       DB_NAME: flytwo_test
       DB_PORT: 5432
 
@@ -25,7 +25,7 @@ jobs:
         image: postgres:17-alpine
         env:
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
+          POSTGRES_PASSWORD: ${{ secrets.DB_PASS }}
           POSTGRES_DB: flytwo_test
         ports:
           - 5432:5432
@@ -50,7 +50,7 @@ jobs:
       - name: Install dependencies
         run: uv sync --locked --all-extras --all-groups
 
-      - name: Create dummy tests/.env
+      - name: Create tests/.env
         run: |
           cat > tests/.env <<'EOF'
           BOT_TOKEN=123456789:TEST_TOKEN_FOR_CI
