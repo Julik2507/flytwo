@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [master]
+  # workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    #spin up container based on Postgres
+    env:
+      DB_HOST: localhost
+      DB_USER: postgres
+      DB_PASS: ${{ secrets.DB_PASS }}
+      DB_NAME: flytwo_test
+      DB_PORT: 5432
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ${{ secrets.DB_PASS }}
+          POSTGRES_DB: flytwo_test
+        ports:
+          - 5432:5432
+
+      #spin up container based on Redis
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: '3.13'
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --locked --all-extras --all-groups
+
+      - name: Create tests/.env
+        run: |
+          cat > tests/.env <<'EOF'
+          BOT_TOKEN=123456789:TEST_TOKEN_FOR_CI
+          JWT_SECRET=test-jwt-secret
+          JWT_ACCESS_TOKEN_EXPIRE=30
+          REDIS_HOST=localhost
+          REDIS_PORT=6379
+          EOF
+
+      - name: Apply migrations
+        run: uv run alembic upgrade head
+        env:
+          PYTHONPATH: src
+          #think about workers quantity
+      - name: Run unit tests
+        run: uv run pytest
+
+      - name: Dependency scan (Trivy)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: uv.lock
+          scanners: vuln
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          format: table
+          output: trivy-report.txt
+          exit-code: '0'
+
+      #This stage behaves similar to post action
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports
+          path: |
+            trivy-report.txt
+          if-no-files-found: ignore

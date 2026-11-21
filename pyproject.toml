@@ -23,6 +23,7 @@ dependencies = [
     "python-dateutil",
     "fastmcp>=3.4.3",
     "httpx>=0.28.1",
+    "pytest-xdist>=3.8"
 ]
 
 [project.optional-dependencies]
@@ -60,6 +61,7 @@ packages = ["src/client"]
 
 [tool.pytest.ini_options]
 asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
 asyncio_mode = "auto"
 env_override_existing_values = 1
 env_files = ["tests/.env"]
