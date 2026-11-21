@@ -23,6 +23,7 @@ dependencies = [
     "python-dateutil",
     "fastmcp>=3.4.3",
     "httpx>=0.28.1",
+    "pytest-xdist>=3.8"
 ]
 
 [project.optional-dependencies]

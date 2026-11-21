@@ -3,7 +3,7 @@ name: CI
 on:
   pull_request:
     branches: [master]
-  workflow_dispatch:
+  # workflow_dispatch:
 
 permissions:
   contents: read
@@ -64,9 +64,9 @@ jobs:
         run: uv run alembic upgrade head
         env:
           PYTHONPATH: src
-
+          #think about workers quantity
       - name: Run unit tests
-        run: uv run pytest -v
+        run: uv run pytest
 
       - name: Dependency scan (Trivy)
         uses: aquasecurity/trivy-action@v0.36.0
